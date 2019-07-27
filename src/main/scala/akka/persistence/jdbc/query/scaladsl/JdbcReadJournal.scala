@@ -142,7 +142,8 @@ class JdbcReadJournal(config: Config, configPath: String)(implicit val system: E
         case _ =>
           delaySource
             .flatMapConcat { _ =>
-              currentJournalEventsByPersistenceId(persistenceId, from, from + (readJournalConfig.maxBufferSize - 1))
+              val to = Math.min(from + (readJournalConfig.maxBufferSize - 1), toSequenceNr)
+              currentJournalEventsByPersistenceId(persistenceId, from, to)
             }
             .mapConcat(adaptEvents)
             .map(repr => EventEnvelope(Sequence(repr.sequenceNr), repr.persistenceId, repr.sequenceNr, repr.payload))
